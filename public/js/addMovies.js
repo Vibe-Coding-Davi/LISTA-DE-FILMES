@@ -863,7 +863,7 @@ function createFavoriteBtn(movie) {
   return btn;
 }
 /* ============================================================
-   MODAL DE ADIÇÃO
+   MODAL DE ADIÇÃO — versão simplificada com aba avançada
 ============================================================ */
 function buildAddMovieUI() {
   if (!$("addMovieFab")) {
@@ -882,6 +882,7 @@ function buildAddMovieUI() {
     document.body.appendChild(fab);
   }
   if ($("addModal")) return;
+
   if (!document.getElementById("addModalStyle")) {
     const st = document.createElement("style");
     st.id = "addModalStyle";
@@ -890,30 +891,59 @@ function buildAddMovieUI() {
       #addModalInner {
         background:#16161f;
         border:0.5px solid rgba(167,139,250,0.18);
-        border-radius:16px;
+        border-radius:20px;
         width:100%;
-        max-width:680px;
+        max-width:500px;
         max-height:92vh;
         display:flex;
         flex-direction:column;
         overflow:hidden;
-        box-shadow:0 24px 80px rgba(0,0,0,0.7);
+        box-shadow:0 24px 80px rgba(0,0,0,0.75);
       }
+      /* HEADER */
+      #addModalHeader {
+        padding:20px 22px 16px;
+        flex-shrink:0;
+        border-bottom:0.5px solid rgba(167,139,250,0.1);
+      }
+      #addModalHeader h3 {
+        margin:0 0 14px 0;
+        font-size:20px;
+        font-weight:800;
+        color:#f0eeff;
+        letter-spacing:-0.025em;
+      }
+      /* TIPO: Filme / Série */
+      .add-type-row {
+        display:flex; gap:8px;
+      }
+      .add-type-btn {
+        flex:1; padding:9px 0; border-radius:10px;
+        font-size:13px; font-weight:700;
+        border:0.5px solid rgba(167,139,250,0.18);
+        cursor:pointer; font-family:inherit;
+        transition:all 0.15s;
+        background:#1e1e2a; color:rgba(240,238,255,0.35);
+      }
+      .add-type-btn.active {
+        background:rgba(167,139,250,0.15);
+        border-color:rgba(167,139,250,0.55);
+        color:#c4b5fd;
+      }
+      /* SCROLL AREA */
       #addModalScroll {
         overflow-y:auto;
         flex:1;
-        padding:0 22px 22px;
+        padding:20px 22px;
         scrollbar-width:thin;
         scrollbar-color:rgba(167,139,250,0.2) transparent;
+        display:flex;
+        flex-direction:column;
+        gap:16px;
       }
-      .add-label {
-        display:block;
-        font-size:11px;
-        font-weight:700;
-        letter-spacing:0.08em;
-        text-transform:uppercase;
-        color:rgba(167,139,250,0.6);
-        margin-bottom:6px;
+      /* BUSCA */
+      #addSearchWrap {
+        position:relative;
       }
       .add-input {
         width:100%;
@@ -921,19 +951,117 @@ function buildAddMovieUI() {
         border:0.5px solid rgba(167,139,250,0.14) !important;
         border-radius:10px !important;
         color:#f0eeff !important;
-        padding:10px 13px !important;
+        padding:11px 14px !important;
         font-size:14px !important;
         font-family:inherit !important;
-        transition:border-color 0.2s !important;
+        transition:border-color 0.2s,background 0.2s !important;
         box-sizing:border-box;
       }
       .add-input:focus {
         outline:none !important;
-        border-color:rgba(167,139,250,0.5) !important;
-        background:rgba(167,139,250,0.06) !important;
+        border-color:rgba(167,139,250,0.55) !important;
+        background:rgba(167,139,250,0.05) !important;
       }
-      .add-input::placeholder { color:rgba(240,238,255,0.2) !important; }
-      .add-textarea { resize:vertical; min-height:90px; }
+      .add-input::placeholder { color:rgba(240,238,255,0.22) !important; }
+      .add-textarea { resize:vertical; min-height:80px; }
+      /* SUGESTÕES */
+      #addTitleSuggestions {
+        position:absolute; top:calc(100% + 4px); left:0; right:0; z-index:200;
+        background:#1a1a28;
+        border:0.5px solid rgba(167,139,250,0.22);
+        border-radius:12px;
+        box-shadow:0 12px 40px rgba(0,0,0,0.6);
+        max-height:240px; overflow-y:auto;
+        scrollbar-width:thin;
+      }
+      .add-suggestion-item {
+        display:flex; align-items:center; gap:11px;
+        padding:9px 12px; cursor:pointer;
+        transition:background 0.12s;
+        color:#f0eeff; font-size:13px;
+      }
+      .add-suggestion-item:first-child { border-radius:12px 12px 0 0; }
+      .add-suggestion-item:last-child  { border-radius:0 0 12px 12px; }
+      .add-suggestion-item:hover { background:rgba(167,139,250,0.1); }
+      /* CARD DO ITEM SELECIONADO */
+      #addSelectedCard {
+        display:none;
+        background:rgba(167,139,250,0.07);
+        border:0.5px solid rgba(167,139,250,0.25);
+        border-radius:12px;
+        padding:12px;
+        gap:12px;
+        align-items:flex-start;
+      }
+      #addSelectedCard.visible { display:flex; }
+      #addSelectedPoster {
+        width:60px; height:90px; object-fit:cover;
+        border-radius:7px; flex-shrink:0;
+        background:#1e1e2a;
+      }
+      #addSelectedInfo { flex:1; min-width:0; }
+      #addSelectedTitle {
+        font-size:14px; font-weight:800; color:#f0eeff;
+        margin-bottom:4px; line-height:1.3;
+      }
+      #addSelectedMeta {
+        font-size:11px; color:rgba(167,139,250,0.6);
+        margin-bottom:6px;
+      }
+      #addSelectedCats {
+        display:flex; flex-wrap:wrap; gap:4px;
+      }
+      .sel-cat-badge {
+        padding:2px 8px; border-radius:20px; font-size:10px;
+        font-weight:700; background:rgba(167,139,250,0.12);
+        border:0.5px solid rgba(167,139,250,0.2);
+        color:rgba(167,139,250,0.7);
+      }
+      #addChangeTitleBtn {
+        background:none; border:none; color:rgba(167,139,250,0.45);
+        font-size:11px; cursor:pointer; font-family:inherit;
+        padding:0; text-decoration:underline;
+        margin-top:6px; display:block;
+      }
+      #addChangeTitleBtn:hover { color:#a78bfa; }
+      /* ABA AVANÇADA */
+      #addAdvancedToggle {
+        display:flex; align-items:center; justify-content:space-between;
+        cursor:pointer; padding:10px 14px;
+        background:rgba(167,139,250,0.05);
+        border:0.5px solid rgba(167,139,250,0.15);
+        border-radius:10px;
+        user-select:none;
+        transition:background 0.15s;
+      }
+      #addAdvancedToggle:hover { background:rgba(167,139,250,0.1); }
+      #addAdvancedToggle span {
+        font-size:12px; font-weight:700;
+        color:rgba(167,139,250,0.7);
+        letter-spacing:0.04em;
+      }
+      #addAdvancedChevron {
+        transition:transform 0.25s;
+        color:rgba(167,139,250,0.4);
+      }
+      #addAdvancedChevron.open { transform:rotate(180deg); }
+      #addAdvancedPanel {
+        display:none;
+        flex-direction:column;
+        gap:14px;
+        padding:14px;
+        background:rgba(10,10,18,0.4);
+        border:0.5px solid rgba(167,139,250,0.1);
+        border-radius:10px;
+        margin-top:-8px;
+      }
+      #addAdvancedPanel.open { display:flex; }
+      .adv-label {
+        display:block; font-size:10px; font-weight:700;
+        letter-spacing:0.08em; text-transform:uppercase;
+        color:rgba(167,139,250,0.5); margin-bottom:5px;
+      }
+      /* BOTÕES GERAIS */
       .add-btn-primary {
         background:linear-gradient(135deg,#a78bfa,#7c5fcc);
         color:#fff; border:none; border-radius:10px;
@@ -944,50 +1072,38 @@ function buildAddMovieUI() {
       .add-btn-primary:hover { opacity:0.9; transform:translateY(-1px); }
       .add-btn-ghost {
         background:#1e1e2a;
-        color:rgba(240,238,255,0.5);
+        color:rgba(240,238,255,0.45);
         border:0.5px solid rgba(167,139,250,0.15);
-        border-radius:10px; padding:10px 14px;
+        border-radius:10px; padding:9px 14px;
         font-size:13px; font-weight:600;
         cursor:pointer; font-family:inherit;
         transition:border-color 0.15s,color 0.15s;
       }
       .add-btn-ghost:hover { border-color:rgba(167,139,250,0.4); color:#f0eeff; }
+      .add-btn-sm {
+        padding:6px 12px; font-size:11px; border-radius:8px;
+      }
       .add-btn-danger {
-        background:rgba(220,38,38,0.15);
+        background:rgba(220,38,38,0.12);
         color:#fca5a5;
-        border:0.5px solid rgba(220,38,38,0.3);
-        border-radius:10px; padding:10px 14px;
+        border:0.5px solid rgba(220,38,38,0.25);
+        border-radius:10px; padding:9px 14px;
         font-size:13px; font-weight:600;
         cursor:pointer; font-family:inherit;
         transition:background 0.15s;
       }
-      .add-btn-danger:hover { background:rgba(220,38,38,0.25); }
-      .add-type-btn {
-        padding:8px 18px; border-radius:50px;
-        font-size:13px; font-weight:700;
-        border:0.5px solid rgba(167,139,250,0.18);
-        cursor:pointer; font-family:inherit;
-        transition:all 0.15s;
-      }
-      .add-type-btn.active {
-        background:rgba(167,139,250,0.15);
-        border-color:rgba(167,139,250,0.5);
-        color:#a78bfa;
-      }
-      .add-type-btn:not(.active) {
-        background:#1e1e2a;
-        color:rgba(240,238,255,0.35);
-      }
+      .add-btn-danger:hover { background:rgba(220,38,38,0.22); }
+      /* CHIPS DE CATEGORIA (no painel avançado) */
       #addCategoryChips {
-        display:flex; flex-wrap:wrap; gap:7px; padding:4px 0;
+        display:flex; flex-wrap:wrap; gap:6px; padding:2px 0;
       }
       .cat-chip {
-        padding:5px 12px; border-radius:20px;
-        font-size:12px; font-weight:600;
+        padding:4px 11px; border-radius:20px;
+        font-size:11px; font-weight:600;
         cursor:pointer; font-family:inherit;
         border:0.5px solid rgba(167,139,250,0.18);
-        background:#1e1e2a; color:rgba(240,238,255,0.4);
-        transition:all 0.15s; user-select:none;
+        background:#1e1e2a; color:rgba(240,238,255,0.38);
+        transition:all 0.13s; user-select:none;
       }
       .cat-chip.selected {
         background:rgba(167,139,250,0.15);
@@ -996,13 +1112,14 @@ function buildAddMovieUI() {
       }
       .cat-chip:hover:not(.selected) {
         border-color:rgba(167,139,250,0.35);
-        color:rgba(240,238,255,0.7);
+        color:rgba(240,238,255,0.65);
       }
+      /* POSTER WRAP */
       #addPosterWrap {
         position:relative; border-radius:10px; overflow:hidden;
         background:#1e1e2a;
         border:0.5px solid rgba(167,139,250,0.14);
-        aspect-ratio:2/3; width:110px; flex-shrink:0;
+        aspect-ratio:2/3; width:90px; flex-shrink:0;
         display:flex; align-items:center; justify-content:center;
       }
       #addPosterPreview {
@@ -1011,148 +1128,239 @@ function buildAddMovieUI() {
       }
       #addPosterPlaceholder {
         display:flex; flex-direction:column; align-items:center;
-        gap:4px; color:rgba(167,139,250,0.25); font-size:10px;
-        font-weight:600; text-align:center; padding:8px;
+        gap:4px; color:rgba(167,139,250,0.2); font-size:9px;
+        font-weight:600; text-align:center; padding:6px;
       }
-      #addTitleSuggestions {
-        position:absolute; top:100%; left:0; right:0; z-index:200;
-        background:#1e1e2a;
-        border:0.5px solid rgba(167,139,250,0.2);
-        border-radius:0 0 10px 10px;
-        box-shadow:0 8px 32px rgba(0,0,0,0.5);
-        max-height:200px; overflow-y:auto;
+      /* FOOTER */
+      #addModalFooter {
+        display:flex; justify-content:space-between; align-items:center;
+        padding:14px 22px;
+        flex-shrink:0;
+        border-top:0.5px solid rgba(167,139,250,0.1);
       }
-      .add-suggestion-item {
-        display:flex; align-items:center; gap:10px;
-        padding:8px 12px; cursor:pointer;
-        transition:background 0.12s;
-        color:#f0eeff; font-size:13px;
+      /* ESTADO DE LOADING NO ITEM SUGERIDO */
+      #addSearchSpinner {
+        position:absolute; right:12px; top:50%; transform:translateY(-50%);
+        width:14px; height:14px;
+        border:2px solid rgba(167,139,250,0.2);
+        border-top-color:#a78bfa;
+        border-radius:50%;
+        animation:addSpin 0.7s linear infinite;
+        display:none;
       }
-      .add-suggestion-item:hover { background:rgba(167,139,250,0.08); }
-      .add-section { margin-bottom:18px; }
-      .add-poster-row {
-        display:flex; gap:14px; align-items:flex-start;
-      }
-      .add-poster-actions {
-        flex:1; display:flex; flex-direction:column; gap:8px;
-      }
-      .add-poster-btns {
-        display:flex; gap:6px; flex-wrap:wrap;
-      }
+      @keyframes addSpin { to { transform:translateY(-50%) rotate(360deg); } }
       @media (max-width:480px) {
-        #addModalInner { border-radius:16px 16px 0 0; max-height:95vh; }
+        #addModalInner { border-radius:20px 20px 0 0; max-height:96vh; }
         #addModal { align-items:flex-end; padding:0 !important; }
       }
     `;
     document.head.appendChild(st);
   }
+
   const modal = document.createElement("div");
   modal.id = "addModal";
   modal.style.cssText = `display:none;position:fixed;inset:0;
-    background:rgba(6,6,12,0.82);z-index:9000;
+    background:rgba(6,6,12,0.85);z-index:9000;
     align-items:center;justify-content:center;padding:16px;`;
+
   modal.innerHTML = `
     <div id="addModalInner">
-      <div style="display:flex;align-items:center;justify-content:space-between;
-        padding:18px 22px 14px;flex-shrink:0;
-        border-bottom:0.5px solid rgba(167,139,250,0.1);">
-        <div>
-          <h3 id="addModalTitle" style="margin:0;font-size:18px;font-weight:800;
-            color:#f0eeff;letter-spacing:-0.02em;">Adicionar filme</h3>
+
+      <!-- HEADER: título + toggle Filme/Série -->
+      <div id="addModalHeader">
+        <h3 id="addModalTitle">Adicionar</h3>
+        <div class="add-type-row">
+          <button id="addTypeMovie"  type="button" class="add-type-btn active">🎬 Filme</button>
+          <button id="addTypeSeries" type="button" class="add-type-btn">📺 Série</button>
         </div>
-        <button id="closeAddModal"
-          style="background:rgba(220,38,38,0.12);border:0.5px solid rgba(220,38,38,0.3);
-            color:#fca5a5;border-radius:8px;padding:5px 12px;cursor:pointer;
-            font-size:12px;font-weight:700;font-family:inherit;">✕ Fechar</button>
       </div>
-      <div style="padding:14px 22px 0;flex-shrink:0;display:flex;gap:8px;">
-        <button id="addTypeMovie"  type="button" class="add-type-btn active">🎬 Filme</button>
-        <button id="addTypeSeries" type="button" class="add-type-btn">📺 Série</button>
-      </div>
+
+      <!-- CONTEÚDO SCROLLÁVEL -->
       <div id="addModalScroll">
-        <div class="add-section" style="position:relative;margin-top:18px;">
-          <label class="add-label" for="addTitle">Título</label>
+
+        <!-- CAMPO DE BUSCA -->
+        <div id="addSearchWrap">
           <input id="addTitle" class="add-input" autocomplete="off"
-            placeholder="Nome do filme ou série..." />
+            placeholder="Digite o nome do filme ou série..." />
+          <div id="addSearchSpinner"></div>
           <div id="addTitleSuggestions" style="display:none;"></div>
         </div>
-        <div class="add-section">
-          <label class="add-label">Pôster</label>
-          <div class="add-poster-row">
-            <div id="addPosterWrap">
-              <div id="addPosterPlaceholder">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
-                  stroke="rgba(167,139,250,0.3)" stroke-width="1.5">
-                  <rect x="3" y="3" width="18" height="18" rx="2"/>
-                  <circle cx="8.5" cy="8.5" r="1.5"/>
-                  <polyline points="21,15 16,10 5,21"/>
-                </svg>
-                <span>Sem imagem</span>
+
+        <!-- CARD DO ITEM SELECIONADO (aparece após escolher) -->
+        <div id="addSelectedCard">
+          <img id="addSelectedPoster" src="" alt="pôster" />
+          <div id="addSelectedInfo">
+            <div id="addSelectedTitle"></div>
+            <div id="addSelectedMeta"></div>
+            <div id="addSelectedCats"></div>
+            <button id="addChangeTitleBtn" type="button">✏️ Trocar busca</button>
+          </div>
+        </div>
+
+        <!-- ABA PERSONALIZAÇÃO AVANÇADA -->
+        <div id="addAdvancedToggle" role="button" tabindex="0"
+          aria-expanded="false" aria-controls="addAdvancedPanel">
+          <span>⚙️ Personalização Avançada</span>
+          <svg id="addAdvancedChevron" width="14" height="14" viewBox="0 0 24 24"
+            fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="6,9 12,15 18,9"/>
+          </svg>
+        </div>
+        <div id="addAdvancedPanel" role="region">
+
+          <!-- Pôster -->
+          <div>
+            <label class="adv-label">Pôster</label>
+            <div style="display:flex;gap:12px;align-items:flex-start;">
+              <div id="addPosterWrap">
+                <div id="addPosterPlaceholder">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="1.5">
+                    <rect x="3" y="3" width="18" height="18" rx="2"/>
+                    <circle cx="8.5" cy="8.5" r="1.5"/>
+                    <polyline points="21,15 16,10 5,21"/>
+                  </svg>
+                  <span>Sem imagem</span>
+                </div>
+                <img id="addPosterPreview" alt="preview" />
               </div>
-              <img id="addPosterPreview" alt="preview" />
-            </div>
-            <div class="add-poster-actions">
-              <input id="addPosterUrl" class="add-input"
-                placeholder="https://... (URL do pôster)" />
-              <div class="add-poster-btns">
-                <button id="addFetchPoster" type="button" class="add-btn-primary"
-                  style="font-size:12px;padding:8px 14px;">🔍 Buscar API</button>
-                <button id="addUploadBtn"   type="button" class="add-btn-ghost"
-                  style="font-size:12px;padding:8px 14px;">⬆ Upload</button>
-                <input id="addUploadInput" type="file" accept="image/*" style="display:none"/>
-                <button id="addRemovePoster" type="button" class="add-btn-danger"
-                  style="font-size:12px;padding:8px 12px;">✕</button>
+              <div style="flex:1;display:flex;flex-direction:column;gap:7px;">
+                <input id="addPosterUrl" class="add-input"
+                  placeholder="URL do pôster (https://...)" style="font-size:12px;" />
+                <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                  <button id="addFetchPoster"  type="button" class="add-btn-primary add-btn-sm">🔍 Buscar</button>
+                  <button id="addUploadBtn"    type="button" class="add-btn-ghost   add-btn-sm">⬆ Upload</button>
+                  <button id="addRemovePoster" type="button" class="add-btn-danger  add-btn-sm">✕</button>
+                  <input id="addUploadInput" type="file" accept="image/*" style="display:none"/>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-        <div class="add-section">
-          <label class="add-label" for="addSynopsis">Sinopse</label>
-          <textarea id="addSynopsis" class="add-input add-textarea"
-            placeholder="Resumo do enredo..."></textarea>
-          <div style="display:flex;gap:8px;margin-top:8px;">
-            <button id="addGenerateSynopsis" type="button" class="add-btn-primary"
-              style="font-size:12px;padding:7px 14px;">✦ Gerar</button>
-            <button id="addClearSynopsis"    type="button" class="add-btn-ghost"
-              style="font-size:12px;padding:7px 14px;">Limpar</button>
+
+          <!-- Sinopse -->
+          <div>
+            <label class="adv-label" for="addSynopsis">Sinopse</label>
+            <textarea id="addSynopsis" class="add-input add-textarea"
+              placeholder="Resumo do enredo..."></textarea>
+            <div style="display:flex;gap:6px;margin-top:6px;">
+              <button id="addGenerateSynopsis" type="button" class="add-btn-primary add-btn-sm">✦ Gerar</button>
+              <button id="addClearSynopsis"    type="button" class="add-btn-ghost   add-btn-sm">Limpar</button>
+            </div>
           </div>
-        </div>
-        <div class="add-section">
-          <label class="add-label">Categorias</label>
-          <select id="addCategories" multiple style="display:none;"></select>
-          <div id="addCategoryChips"></div>
-          <div style="display:flex;gap:8px;margin-top:10px;">
-            <input id="addNewCategory" class="add-input"
-              style="flex:1;" placeholder="Nova categoria..." />
-            <button id="addCategoryBtnLocal" type="button" class="add-btn-primary"
-              style="font-size:12px;padding:8px 14px;white-space:nowrap;">+ Criar</button>
+
+          <!-- Categorias -->
+          <div>
+            <label class="adv-label">Categorias</label>
+            <select id="addCategories" multiple style="display:none;"></select>
+            <div id="addCategoryChips"></div>
+            <div style="display:flex;gap:7px;margin-top:8px;">
+              <input id="addNewCategory" class="add-input"
+                style="flex:1;font-size:12px;" placeholder="Nova categoria..." />
+              <button id="addCategoryBtnLocal" type="button"
+                class="add-btn-primary add-btn-sm" style="white-space:nowrap;">+ Criar</button>
+            </div>
           </div>
-        </div>
-        <div class="add-section">
-          <label class="add-label" for="addStreaming">URL Streaming <span style="opacity:.4;font-weight:400;text-transform:none;letter-spacing:0;">(opcional)</span></label>
-          <input id="addStreaming" class="add-input" placeholder="https://..." />
-          <label style="display:flex;align-items:center;gap:8px;margin-top:10px;
-            cursor:pointer;color:rgba(240,238,255,0.45);font-size:13px;">
-            <input id="addRemember" type="checkbox"
-              style="accent-color:#a78bfa;width:15px;height:15px;" />
-            Lembrar preferências
-          </label>
-        </div>
-      </div>
-      <div style="display:flex;justify-content:space-between;align-items:center;
-        padding:14px 22px;flex-shrink:0;
-        border-top:0.5px solid rgba(167,139,250,0.1);">
+
+          <!-- URL de Streaming -->
+          <div>
+            <label class="adv-label" for="addStreaming">
+              URL Streaming
+              <span style="font-weight:400;text-transform:none;letter-spacing:0;opacity:.5;">(opcional)</span>
+            </label>
+            <input id="addStreaming" class="add-input" placeholder="https://..." style="font-size:13px;" />
+            <label style="display:flex;align-items:center;gap:8px;margin-top:9px;
+              cursor:pointer;color:rgba(240,238,255,0.4);font-size:12px;">
+              <input id="addRemember" type="checkbox"
+                style="accent-color:#a78bfa;width:14px;height:14px;" />
+              Lembrar preferências
+            </label>
+          </div>
+
+        </div><!-- /addAdvancedPanel -->
+
+      </div><!-- /scroll -->
+
+      <!-- FOOTER -->
+      <div id="addModalFooter">
         <button id="cancelAddBtn" type="button" class="add-btn-ghost">Cancelar</button>
         <button id="confirmAddBtn" type="button" class="add-btn-primary"
           style="padding:11px 28px;font-size:14px;">Salvar</button>
       </div>
+
     </div>`;
+
   modal.addEventListener("click", (e) => {
     if (e.target === modal) modal.style.display = "none";
   });
   document.body.appendChild(modal);
-  $("closeAddModal").onclick = () => { modal.style.display = "none"; };
-  $("cancelAddBtn").onclick  = () => { modal.style.display = "none"; };
+
+  /* ---- fechar ---- */
+  $("cancelAddBtn").onclick = () => { modal.style.display = "none"; };
+
+  /* ---- toggle aba avançada ---- */
+  const advToggle  = $("addAdvancedToggle");
+  const advPanel   = $("addAdvancedPanel");
+  const advChevron = $("addAdvancedChevron");
+  function toggleAdvanced(forceOpen) {
+    const open = forceOpen !== undefined ? forceOpen : !advPanel.classList.contains("open");
+    advPanel.classList.toggle("open", open);
+    advChevron.classList.toggle("open", open);
+    advToggle.setAttribute("aria-expanded", open);
+  }
+  advToggle.addEventListener("click",   () => toggleAdvanced());
+  advToggle.addEventListener("keydown", (e) => { if (e.key==="Enter"||e.key===" ") { e.preventDefault(); toggleAdvanced(); } });
+
+  /* ---- tipo: Filme / Série ---- */
+  const btnTypeMovie  = $("addTypeMovie");
+  const btnTypeSeries = $("addTypeSeries");
+  const addModalTitle = $("addModalTitle");
+  function setAddMediaType(type) {
+    addMediaType = type;
+    btnTypeMovie.classList.toggle ("active", type === "movie");
+    btnTypeSeries.classList.toggle("active", type === "tv");
+    addModalTitle.textContent = type === "movie" ? "Adicionar Filme" : "Adicionar Série";
+    $("addTitleSuggestions").style.display = "none";
+    $("addTitleSuggestions").innerHTML = "";
+    resetSelectedCard();
+  }
+  btnTypeMovie.onclick  = () => setAddMediaType("movie");
+  btnTypeSeries.onclick = () => setAddMediaType("tv");
+
+  /* ---- card do item selecionado ---- */
+  function showSelectedCard(details, isTV) {
+    const card  = $("addSelectedCard");
+    const img   = $("addSelectedPoster");
+    const title = $("addSelectedTitle");
+    const meta  = $("addSelectedMeta");
+    const cats  = $("addSelectedCats");
+    const name  = details.title || details.name || "";
+    const year  = (details.release_date || details.first_air_date || "").split("-")[0];
+    const genreNames = (details.genres || []).map(g => normalizeCategory(g.name));
+    img.src = details.poster_path ? `${TMDB_IMG_BASE_URL}${details.poster_path}` : "";
+    img.style.display = details.poster_path ? "block" : "none";
+    title.textContent = name;
+    meta.textContent  = [year, isTV ? "Série" : "Filme"].filter(Boolean).join(" · ");
+    cats.innerHTML = genreNames.slice(0,4).map(c => `<span class="sel-cat-badge">${c}</span>`).join("");
+    card.classList.add("visible");
+    // esconde o input de busca e mostra o card
+    $("addSearchWrap").style.display = "none";
+  }
+  function resetSelectedCard() {
+    $("addSelectedCard").classList.remove("visible");
+    $("addSearchWrap").style.display = "block";
+    $("addTitle").value = "";
+    $("addTitleSuggestions").style.display = "none";
+    tmpTmdbId = ""; tmpOriginalTitle = "";
+  }
+  $("addChangeTitleBtn").onclick = () => {
+    resetSelectedCard();
+    $("addSynopsis").value = "";
+    resetPosterPreview("");
+    setAddSelectedCategories([]);
+    setTimeout(() => $("addTitle").focus(), 50);
+  };
+
+  /* ---- pôster ---- */
   $("addFetchPoster").onclick  = handleFetchPoster;
   $("addUploadBtn").onclick    = () => $("addUploadInput").click();
   $("addUploadInput").onchange = handlePosterUpload;
@@ -1164,26 +1372,22 @@ function buildAddMovieUI() {
     if (url) { prev.src = url; prev.style.display="block"; phld.style.display="none"; }
     else     { prev.style.display="none"; phld.style.display="flex"; }
   };
-  const btnTypeMovie  = $("addTypeMovie");
-  const btnTypeSeries = $("addTypeSeries");
-  const addModalTitle = $("addModalTitle");
-  function setAddMediaType(type) {
-    addMediaType = type;
-    btnTypeMovie.classList.toggle ("active", type === "movie");
-    btnTypeSeries.classList.toggle("active", type === "tv");
-    addModalTitle.textContent = type === "movie" ? "Adicionar filme" : "Adicionar série";
-    $("addTitleSuggestions").style.display = "none";
-    $("addTitleSuggestions").innerHTML = "";
-  }
-  btnTypeMovie.onclick  = () => setAddMediaType("movie");
-  btnTypeSeries.onclick = () => setAddMediaType("tv");
-  $("addGenerateSynopsis").onclick = () => {
-    const t = $("addTitle").value.trim();
-    if (!t) return showToast("Digite o título primeiro");
-    $("addSynopsis").value = `Sinopse: ${t} — breve resumo do enredo.`;
-    showToast("Sinopse gerada (local)");
+
+  /* ---- sinopse ---- */
+  $("addGenerateSynopsis").onclick = async () => {
+    const t = $("addTitle").value.trim() || ($("addSelectedTitle")?.textContent?.trim());
+    if (!t) return showToast("Selecione um título primeiro");
+    showToast("Buscando sinopse...");
+    const isTV = addMediaType === "tv";
+    const results = isTV ? await searchTVTMDb(t) : await searchMoviesTMDb(t);
+    if (!results?.length) return showToast("Não encontrado.", "warning");
+    const details = isTV ? await fetchTVDetailsTMDb(results[0].id) : await fetchMovieDetailsTMDb(results[0].id);
+    if (details?.overview) { $("addSynopsis").value = details.overview; showToast("Sinopse carregada!", "success"); }
+    else showToast("Sinopse não encontrada.", "warning");
   };
   $("addClearSynopsis").onclick = () => { $("addSynopsis").value = ""; showToast("Sinopse limpa"); };
+
+  /* ---- categorias ---- */
   $("addCategoryBtnLocal").onclick = () => {
     const v = normalizeCategory($("addNewCategory").value.trim());
     if (!v) return showToast("Digite um nome para categoria");
@@ -1195,63 +1399,85 @@ function buildAddMovieUI() {
   $("addNewCategory").addEventListener("keydown", (e) => {
     if (e.key === "Enter") $("addCategoryBtnLocal").click();
   });
+
+  /* ---- salvar ---- */
   $("confirmAddBtn").onclick = () => handleAddConfirm();
+
+  /* ---- sugestões ao digitar ---- */
   let typingTimer;
   const addTitleInput       = $("addTitle");
   const addTitleSuggestions = $("addTitleSuggestions");
+  const spinner             = $("addSearchSpinner");
+
   addTitleInput.addEventListener("input", () => {
     clearTimeout(typingTimer);
-    if (addTitleInput.value.length < 3) { addTitleSuggestions.style.display="none"; return; }
+    if (addTitleInput.value.length < 2) {
+      addTitleSuggestions.style.display = "none";
+      if (spinner) spinner.style.display = "none";
+      return;
+    }
+    if (spinner) spinner.style.display = "block";
     typingTimer = setTimeout(async () => {
       const term = addTitleInput.value.trim();
-      if (term.length >= 3) {
+      if (term.length >= 2) {
         const results = addMediaType === "tv"
           ? await searchTVTMDb(term)
           : await searchMoviesTMDb(term);
+        if (spinner) spinner.style.display = "none";
         renderSuggestions(results);
       }
-    }, 500);
+    }, 400);
   });
-  addTitleInput.addEventListener("blur",  () => { setTimeout(() => { addTitleSuggestions.style.display="none"; }, 160); });
+  addTitleInput.addEventListener("blur",  () => { setTimeout(() => { addTitleSuggestions.style.display="none"; }, 180); });
   addTitleInput.addEventListener("focus", () => {
-    if (addTitleSuggestions.innerHTML.trim() && addTitleInput.value.length >= 3)
+    if (addTitleSuggestions.innerHTML.trim() && addTitleInput.value.length >= 2)
       addTitleSuggestions.style.display = "block";
   });
+
   async function renderSuggestions(suggestions) {
     addTitleSuggestions.innerHTML = "";
     if (!suggestions?.length) { addTitleSuggestions.style.display="none"; return; }
     addTitleSuggestions.style.display = "block";
-    suggestions.slice(0, 6).forEach(item => {
+    suggestions.slice(0, 7).forEach(item => {
       const div = document.createElement("div");
       div.className = "add-suggestion-item";
       div.onmousedown = (e) => { e.preventDefault(); selectSuggestedItem(item.id); };
       const posterPath = item.poster_path
         ? `${TMDB_IMG_BASE_URL}${item.poster_path}`
-        : "https://via.placeholder.com/40x60?text=?";
+        : "";
       const name = item.title || item.name || "";
       const year = (item.release_date || item.first_air_date || "").split("-")[0];
+      const overview = (item.overview || "").substring(0, 70);
       div.innerHTML = `
-        <img src="${posterPath}"
-          style="width:32px;height:48px;object-fit:cover;border-radius:5px;flex-shrink:0;"/>
-        <div>
-          <div style="font-weight:700;font-size:13px;">${escapeHtml(name)}</div>
-          ${year ? `<div style="font-size:11px;color:rgba(240,238,255,0.35);">${year}</div>` : ""}
+        ${posterPath
+          ? `<img src="${posterPath}" style="width:34px;height:50px;object-fit:cover;border-radius:5px;flex-shrink:0;"/>`
+          : `<div style="width:34px;height:50px;border-radius:5px;background:#1e1e2a;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:16px;">🎬</div>`
+        }
+        <div style="min-width:0;">
+          <div style="font-weight:700;font-size:13px;color:#f0eeff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(name)}</div>
+          ${year ? `<div style="font-size:11px;color:rgba(167,139,250,0.5);margin-bottom:2px;">${year}</div>` : ""}
+          ${overview ? `<div style="font-size:11px;color:rgba(240,238,255,0.25);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(overview)}</div>` : ""}
         </div>`;
       addTitleSuggestions.appendChild(div);
     });
   }
+
   async function selectSuggestedItem(itemId) {
     const isTV = addMediaType === "tv";
+    addTitleSuggestions.style.display = "none";
     showToast(isTV ? "Carregando série..." : "Carregando filme...");
     const details = isTV ? await fetchTVDetailsTMDb(itemId) : await fetchMovieDetailsTMDb(itemId);
-    addTitleSuggestions.style.display = "none";
     if (details) {
       tmpTmdbId = String(details.id);
       const displayTitle = details.title || details.name || "";
       const enTitle = await fetchEnglishTitle(details.id, isTV ? "tv" : "movie");
       tmpOriginalTitle = enTitle || displayTitle;
-      $("addTitle").value    = displayTitle;
-      $("addSynopsis").value = details.overview || "Sinopse não disponível.";
+
+      // Mostra o card do item
+      showSelectedCard(details, isTV);
+
+      // Preenche os campos avançados automaticamente
+      $("addSynopsis").value = details.overview || "";
       const posterUrl = details.poster_path ? `${TMDB_IMG_BASE_URL}${details.poster_path}` : "";
       $("addPosterUrl").value = posterUrl;
       resetPosterPreview(posterUrl);
@@ -1259,11 +1485,15 @@ function buildAddMovieUI() {
       newCats.forEach(c => categoriesSet.add(c));
       rebuildCategoryOptions();
       setAddSelectedCategories(newCats);
-      showToast(isTV ? "Série preenchida!" : "Filme preenchido!", "success");
+      showToast(isTV ? "Série selecionada! ✓" : "Filme selecionado! ✓", "success");
     } else {
       showToast("Não foi possível carregar os detalhes.", "warning");
     }
   }
+
+  // expor função para uso externo (openAddModal usa)
+  modal._resetSelectedCard = resetSelectedCard;
+  modal._setAddMediaType   = setAddMediaType;
 }
 function getAddSelectedCategories() {
   const chips = document.querySelectorAll("#addCategoryChips .cat-chip.selected");
@@ -1411,27 +1641,55 @@ function renderSortFilters() {
 function setSortBy(s) { if (currentSortBy === s) return; currentSortBy = s; renderSortFilters(); renderMovies(); }
 /* ---- OPEN ADD MODAL ---- */
 async function openAddModal() {
+  const am = $("addModal");
+  if (!am) return;
+
+  // Reseta campos de texto
   const at = $("addTitle");
-  if (!at) return;
-  at.value = ""; $("addSynopsis").value = ""; $("addPosterUrl").value = "";
+  if (at) at.value = "";
+  const sy = $("addSynopsis"); if (sy) sy.value = "";
+  const pu = $("addPosterUrl"); if (pu) pu.value = "";
   resetPosterPreview(); tmpTmdbId = ""; tmpOriginalTitle = "";
+
+  // Reseta o card de seleção e garante que a busca está visível
+  const selCard = $("addSelectedCard");
+  if (selCard) selCard.classList.remove("visible");
+  const sw = $("addSearchWrap");
+  if (sw) sw.style.display = "block";
+
+  // Reseta tipo para Filme
   addMediaType = "movie";
   const m2 = $("addTypeMovie"), s2 = $("addTypeSeries"), t2 = $("addModalTitle");
   if (m2) { m2.className = "add-type-btn active"; }
   if (s2) { s2.className = "add-type-btn"; }
-  if (t2) t2.textContent = "Adicionar filme";
-  $("addStreaming").value = userPreferences.defaultStreaming || "";
-  $("addRemember").checked = !!(userPreferences.defaultStreaming);
+  if (t2) t2.textContent = "Adicionar Filme";
+
+  // Fecha o painel avançado
+  const advPanel   = $("addAdvancedPanel");
+  const advChevron = $("addAdvancedChevron");
+  const advToggle  = $("addAdvancedToggle");
+  if (advPanel)   advPanel.classList.remove("open");
+  if (advChevron) advChevron.classList.remove("open");
+  if (advToggle)  advToggle.setAttribute("aria-expanded", "false");
+
+  // Popula preferências salvas
+  const str = $("addStreaming"); if (str) str.value = userPreferences.defaultStreaming || "";
+  const rem = $("addRemember");  if (rem) rem.checked = !!(userPreferences.defaultStreaming);
+
   rebuildCategoryOptions();
   const defaultCats = userPreferences.defaultCategories || [];
   setAddSelectedCategories(defaultCats);
-  const am = $("addModal");
-  if (am) am.style.display = "flex";
+
+  am.style.display = "flex";
+  setTimeout(() => { const at2 = $("addTitle"); if (at2) at2.focus(); }, 80);
 }
 async function handleAddConfirm() {
   if (!userId) return;
-  const title = safeText($("addTitle").value).trim();
-  if (!title) return showToast("Digite o título", "warning");
+  // Título vem do card de seleção (quando selecionado) ou do campo de texto
+  const selTitle = $("addSelectedTitle")?.textContent?.trim();
+  const inputTitle = safeText($("addTitle")?.value || "").trim();
+  const title = selTitle || inputTitle;
+  if (!title) return showToast("Selecione ou digite um título", "warning");
   const synopsis = safeText($("addSynopsis").value).trim();
   const categories = getAddSelectedCategories().map(normalizeCategory);
   categories.forEach(c => categoriesSet.add(c));
