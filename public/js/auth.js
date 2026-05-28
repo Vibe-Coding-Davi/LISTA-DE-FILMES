@@ -15,6 +15,15 @@ document.addEventListener("DOMContentLoaded", () => {
   const forgotPasswordLink = document.getElementById("forgotPasswordLink");
 
   /* =========================
+     Validação de e-mail real
+     (exige formato usuario@dominio.tld com TLD de 2+ letras)
+  ========================= */
+  function isValidEmail(email) {
+    const re = /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/;
+    return re.test(email.trim());
+  }
+
+  /* =========================
      Botões — estado loading
   ========================= */
   function setButtonsLoading(isLoading) {
@@ -42,13 +51,9 @@ document.addEventListener("DOMContentLoaded", () => {
       document.body.appendChild(toast);
     }
 
-    // Remove classes anteriores, aplica as novas
     toast.className = "";
     toast.textContent = message;
-
-    // Força reflow para reiniciar a animação se o toast já estiver visível
     void toast.offsetWidth;
-
     toast.className = `toast toast-${type} show`;
 
     clearTimeout(showToast._t);
@@ -86,6 +91,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (!email || !senha) {
       showToast("Preencha todos os campos.", "warning");
+      return;
+    }
+
+    // Validação de e-mail rigorosa (exige TLD real, ex: .com .br .org)
+    if (!isValidEmail(email)) {
+      showToast("Digite um e-mail válido (ex: seu@email.com).", "warning");
+      emailInput.focus();
       return;
     }
 
@@ -136,6 +148,11 @@ document.addEventListener("DOMContentLoaded", () => {
   forgotPasswordLink.addEventListener("click", async () => {
     const email = prompt("Digite seu email para redefinir a senha:");
     if (!email) return;
+
+    if (!isValidEmail(email)) {
+      showToast("Digite um e-mail válido (ex: seu@email.com).", "warning");
+      return;
+    }
 
     setButtonsLoading(true);
     try {

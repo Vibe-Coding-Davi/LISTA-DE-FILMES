@@ -109,6 +109,7 @@ async function fetchTVSeasonDetails(tvId, season) {
 }
 async function fetchEnglishTitle(movieId, mediaType = "movie") {
   try {
+    // Primeiro busca títulos alternativos para US/GB
     const endpoint = mediaType === "tv"
       ? `https://api.themoviedb.org/3/tv/${movieId}/alternative_titles?api_key=${TMDB_API_KEY}`
       : `https://api.themoviedb.org/3/movie/${movieId}/alternative_titles?api_key=${TMDB_API_KEY}`;
@@ -117,7 +118,14 @@ async function fetchEnglishTitle(movieId, mediaType = "movie") {
     const titles = mediaType === "tv" ? (d?.results || []) : (d?.titles || []);
     const us = titles.find(t => t.iso_3166_1 === "US");
     const gb = titles.find(t => t.iso_3166_1 === "GB");
-    return us?.title || gb?.title || null;
+    if (us?.title || gb?.title) return us?.title || gb?.title;
+    // Fallback: usa original_title direto do TMDB (geralmente já é o nome original)
+    const detailEndpoint = mediaType === "tv"
+      ? `https://api.themoviedb.org/3/tv/${movieId}?api_key=${TMDB_API_KEY}&language=en-US`
+      : `https://api.themoviedb.org/3/movie/${movieId}?api_key=${TMDB_API_KEY}&language=en-US`;
+    const r2 = await fetch(detailEndpoint);
+    const d2 = await r2.json();
+    return d2?.original_title || d2?.original_name || d2?.title || d2?.name || null;
   } catch(e) { return null; }
 }
 async function loadGenresTMDb() {
@@ -215,6 +223,47 @@ const textMap = {
     delete_selected:"Excluir Selecionados", sort_by:"Ordenar por:", sort_date:"Mais Recentes",
     sort_title:"Título (A-Z)", logout:"Sair", read_more:"Leia mais",
     favorites_filter:"❤️ Favoritos", favorites_filter_active:"❤️ Favoritos",
+    search_placeholder:"Pesquisar título ou sinopse...",
+    add_fab:"+ Adicionar",
+    add_movie:"Adicionar Filme", add_series:"Adicionar Série",
+    add_title_placeholder:"Digite o nome do filme ou série...",
+    add_synopsis_label:"Sinopse", add_synopsis_placeholder:"Resumo do enredo...",
+    add_categories_label:"Categorias", add_new_category_placeholder:"Nova categoria...",
+    add_category_create:"+ Criar",
+    add_streaming_label:"URL Streaming", add_streaming_optional:"(opcional)",
+    add_streaming_placeholder:"https://...", add_remember:"Lembrar preferências",
+    add_cancel:"Cancelar", add_save:"Salvar",
+    add_advanced:"⚙️ Personalização Avançada",
+    add_poster_label:"Pôster", add_poster_placeholder:"URL do pôster (https://...)",
+    add_poster_fetch:"🔍 Buscar", add_poster_upload:"⬆ Upload",
+    add_generate_synopsis:"✦ Gerar", add_clear_synopsis:"Limpar",
+    add_change_title:"✏️ Trocar busca",
+    add_no_image:"Sem imagem",
+    btn_movie:"🎬 Filme", btn_series:"📺 Série",
+    loading:"Carregando...", searching_movie:"Buscando filme na base de dados...",
+    searching_series:"Buscando série na base de dados...",
+    player_close:"✕ Fechar", player_server:"Trocar servidor:",
+    player_next_label:"A seguir", player_loading:"Carregando player...",
+    player_episodes:"Episódios", player_loading_text:"Carregando...",
+    player_season_prefix:"T", player_episode_prefix:"E",
+    confirm_cancel:"Cancelar", confirm_delete:"Excluir",
+    confirm_close_player:"Fechar player?",
+    confirm_close_player_msg:"Deseja fechar o player? O progresso será salvo automaticamente.",
+    confirm_close_btn:"Fechar",
+    confirm_resume:"Continuar assistindo?",
+    confirm_resume_btn:"Continuar",
+    confirm_delete_movie:"Confirmação de Exclusão",
+    confirm_delete_movie_msg:"Deseja realmente excluir esse filme?",
+    confirm_delete_selected_msg:"Deseja realmente excluir {n} filme(s)?",
+    toast_end_series:"Você chegou ao fim da série! 🎉",
+    modal_poster_url:"URL do Pôster", modal_fetch:"Buscar da API",
+    modal_upload:"Upload", modal_remove_poster:"Remover",
+    modal_streaming:"URL do Streaming", modal_remember:"Lembrar preferência",
+    modal_synopsis:"Sinopse", modal_generate:"Gerar", modal_clear:"Limpar",
+    modal_translate:"Traduzir (EN/PT)", modal_categories:"Categorias",
+    modal_delete:"Excluir", modal_save:"Salvar",
+    modal_poster_alt:"Pôster do filme",
+    none_found:"Nenhum filme encontrado.",
     "Todos":"Todos",
     "Ação":"Ação","Terror":"Terror","Comédia":"Comédia","Romance":"Romance",
     "Fantasia":"Fantasia","Thriller":"Thriller","Suspense":"Suspense",
@@ -229,6 +278,47 @@ const textMap = {
     delete_selected:"Delete Selected", sort_by:"Sort by:", sort_date:"Most Recent",
     sort_title:"Title (A-Z)", logout:"Logout", read_more:"Read more",
     favorites_filter:"❤️ Favorites", favorites_filter_active:"❤️ Favorites",
+    search_placeholder:"Search title or synopsis...",
+    add_fab:"+ Add",
+    add_movie:"Add Movie", add_series:"Add Series",
+    add_title_placeholder:"Type the movie or series name...",
+    add_synopsis_label:"Synopsis", add_synopsis_placeholder:"Plot summary...",
+    add_categories_label:"Categories", add_new_category_placeholder:"New category...",
+    add_category_create:"+ Create",
+    add_streaming_label:"Streaming URL", add_streaming_optional:"(optional)",
+    add_streaming_placeholder:"https://...", add_remember:"Remember preferences",
+    add_cancel:"Cancel", add_save:"Save",
+    add_advanced:"⚙️ Advanced Options",
+    add_poster_label:"Poster", add_poster_placeholder:"Poster URL (https://...)",
+    add_poster_fetch:"🔍 Search", add_poster_upload:"⬆ Upload",
+    add_generate_synopsis:"✦ Generate", add_clear_synopsis:"Clear",
+    add_change_title:"✏️ Change search",
+    add_no_image:"No image",
+    btn_movie:"🎬 Movie", btn_series:"📺 Series",
+    loading:"Loading...", searching_movie:"Looking up movie...",
+    searching_series:"Looking up series...",
+    player_close:"✕ Close", player_server:"Switch server:",
+    player_next_label:"Up next", player_loading:"Loading player...",
+    player_episodes:"Episodes", player_loading_text:"Loading...",
+    player_season_prefix:"S", player_episode_prefix:"E",
+    confirm_cancel:"Cancel", confirm_delete:"Delete",
+    confirm_close_player:"Close player?",
+    confirm_close_player_msg:"Close the player? Progress will be saved automatically.",
+    confirm_close_btn:"Close",
+    confirm_resume:"Continue watching?",
+    confirm_resume_btn:"Continue",
+    confirm_delete_movie:"Delete Confirmation",
+    confirm_delete_movie_msg:"Are you sure you want to delete this movie?",
+    confirm_delete_selected_msg:"Are you sure you want to delete {n} item(s)?",
+    toast_end_series:"You've reached the end of the series! 🎉",
+    modal_poster_url:"Poster URL", modal_fetch:"Fetch from API",
+    modal_upload:"Upload", modal_remove_poster:"Remove",
+    modal_streaming:"Streaming URL", modal_remember:"Remember preference",
+    modal_synopsis:"Synopsis", modal_generate:"Generate", modal_clear:"Clear",
+    modal_translate:"Translate (EN/PT)", modal_categories:"Categories",
+    modal_delete:"Delete", modal_save:"Save",
+    modal_poster_alt:"Movie poster",
+    none_found:"No movies found.",
     "Todos":"All",
     "Ação":"Action","Terror":"Horror","Comédia":"Comedy","Romance":"Romance",
     "Fantasia":"Fantasy","Thriller":"Thriller","Suspense":"Suspense",
@@ -264,6 +354,13 @@ async function initApp() {
   await loadUserPreferences();
   buildAddMovieUI();
   createPlayerModal();
+  // Cria o botão de deletar selecionados antes de applyLocalization
+  deleteSelectedBtn = document.createElement("button");
+  deleteSelectedBtn.id = "deleteSelectedBtn";
+  deleteSelectedBtn.textContent = textMap[currentLang].delete_selected + " (0)";
+  deleteSelectedBtn.className = "fixed bottom-6 left-6 bg-red-700 text-white px-5 py-3 rounded-full shadow-xl hover:scale-105 hidden z-40";
+  deleteSelectedBtn.onclick = deleteSelectedMoviesConfirm;
+  document.body.appendChild(deleteSelectedBtn);
   startRealtimeSync();
   applyLocalization();
   rebuildCategoryOptions();
@@ -504,10 +601,11 @@ function createPlayerModal() {
   });
 }
 async function handleClosePlayer() {
+  const t = textMap[currentLang];
   const confirmed = await showCustomConfirm(
-    "Fechar player?",
-    "Deseja fechar o player? O progresso será salvo automaticamente.",
-    "Fechar"
+    t.confirm_close_player,
+    t.confirm_close_player_msg,
+    t.confirm_close_btn
   );
   if (confirmed) await closePlayerModal();
 }
@@ -517,11 +615,11 @@ async function openPlayerModal(movie) {
   let tmdbId = movie.tmdbId || "";
   if (!tmdbId) {
     const isTV = movie.mediaType === "tv";
-    showToast(isTV ? "Buscando série na base de dados..." : "Buscando filme na base de dados...");
+    showToast(isTV ? textMap[currentLang].searching_series : textMap[currentLang].searching_movie);
     const results = isTV ? await searchTVTMDb(movie.title) : await searchMoviesTMDb(movie.title);
     if (results?.length) tmdbId = String(results[0].id);
   }
-  if (!tmdbId) { showToast("Não foi possível encontrar este filme para reproduzir.", "warning"); return; }
+  if (!tmdbId) { showToast(currentLang === "en-US" ? "Could not find this title to play." : "Não foi possível encontrar este filme para reproduzir.", "warning"); return; }
   playingTmdbId  = tmdbId;
   playingMovieId = movie.id || "";
   currentPlayerIndex = 0;
@@ -541,10 +639,14 @@ async function openPlayerModal(movie) {
   let startSeason = 1, startEpisode = 1;
   if (currentMediaType === "tv" && movie.watchProgress?.season) {
     const { season, episode } = movie.watchProgress;
+    const t = textMap[currentLang];
+    const resumeMsg = currentLang === "en-US"
+      ? `You stopped at Season ${season}, Episode ${episode}. Continue from here?`
+      : `Você parou na Temporada ${season}, Episódio ${episode}. Deseja continuar daqui?`;
     const resume = await showCustomConfirm(
-      "Continuar assistindo?",
-      `Você parou na Temporada ${season}, Episódio ${episode}. Deseja continuar daqui?`,
-      "Continuar"
+      t.confirm_resume,
+      resumeMsg,
+      t.confirm_resume_btn
     );
     if (resume) { startSeason = season; startEpisode = episode; }
   }
@@ -610,7 +712,7 @@ window.__nextEpisode = async function() {
   let episode = parseInt($("playerEpisodeInput")?.value) || 1;
   if (playingTotalEpisodes > 0 && episode >= playingTotalEpisodes) {
     if (playingTotalSeasons > 0 && season >= playingTotalSeasons) {
-      showToast("Você chegou ao fim da série! 🎉", "success");
+      showToast(textMap[currentLang].toast_end_series, "success");
       return;
     }
     season  = season + 1;
@@ -869,7 +971,7 @@ function buildAddMovieUI() {
   if (!$("addMovieFab")) {
     const fab = document.createElement("button");
     fab.id = "addMovieFab";
-    fab.textContent = "+ Adicionar";
+    fab.textContent = textMap[currentLang].add_fab;
     fab.style.cssText = `position:fixed;bottom:24px;right:24px;z-index:900;
       background:linear-gradient(135deg,#a78bfa,#7c5fcc);color:#fff;
       border:none;border-radius:50px;padding:12px 22px;font-size:14px;
@@ -1318,7 +1420,7 @@ function buildAddMovieUI() {
     addMediaType = type;
     btnTypeMovie.classList.toggle ("active", type === "movie");
     btnTypeSeries.classList.toggle("active", type === "tv");
-    addModalTitle.textContent = type === "movie" ? "Adicionar Filme" : "Adicionar Série";
+    addModalTitle.textContent = type === "movie" ? textMap[currentLang].add_movie : textMap[currentLang].add_series;
     $("addTitleSuggestions").style.display = "none";
     $("addTitleSuggestions").innerHTML = "";
     resetSelectedCard();
@@ -1558,10 +1660,94 @@ function resetPosterPreview(posterUrl = "") {
 /* ---- LOCALIZATION ---- */
 function applyLocalization() {
   const texts = textMap[currentLang];
+
+  // Header
   const brand = $("brand"); if (brand) brand.textContent = texts.brand;
   const lb = $("logoutBtn"); if (lb) lb.textContent = texts.logout;
   const tb = $("toggleSelectModeBtn");
   if (tb) tb.textContent = multiSelectMode ? texts.select_toggle_on : texts.select_toggle_off;
+
+  // Search placeholder
+  const si = $("searchInput");
+  if (si) si.placeholder = texts.search_placeholder;
+
+  // FAB "Adicionar"
+  const fab = $("addMovieFab");
+  if (fab) fab.textContent = texts.add_fab;
+
+  // Modal de adição — campos textuais
+  const addTitleInput = $("addTitle");
+  if (addTitleInput) addTitleInput.placeholder = texts.add_title_placeholder;
+  const addSynopsisEl = $("addSynopsis");
+  if (addSynopsisEl) addSynopsisEl.placeholder = texts.add_synopsis_placeholder;
+  const addPosterUrlEl = $("addPosterUrl");
+  if (addPosterUrlEl) addPosterUrlEl.placeholder = texts.add_poster_placeholder;
+  const addNewCatEl = $("addNewCategory");
+  if (addNewCatEl) addNewCatEl.placeholder = texts.add_new_category_placeholder;
+  const addStreamingEl = $("addStreaming");
+  if (addStreamingEl) addStreamingEl.placeholder = texts.add_streaming_placeholder;
+
+  // Botões do modal de adição
+  const cancelAddBtn = $("cancelAddBtn"); if (cancelAddBtn) cancelAddBtn.textContent = texts.add_cancel;
+  const confirmAddBtn = $("confirmAddBtn"); if (confirmAddBtn) confirmAddBtn.textContent = texts.add_save;
+  const addAdvToggle = $("addAdvancedToggle");
+  if (addAdvToggle) { const sp = addAdvToggle.querySelector("span"); if (sp) sp.textContent = texts.add_advanced; }
+  const addFetchPosterBtn = $("addFetchPoster"); if (addFetchPosterBtn) addFetchPosterBtn.textContent = texts.add_poster_fetch;
+  const addUploadBtnEl = $("addUploadBtn"); if (addUploadBtnEl) addUploadBtnEl.textContent = texts.add_poster_upload;
+  const addGenerateSynopsisBtn = $("addGenerateSynopsis"); if (addGenerateSynopsisBtn) addGenerateSynopsisBtn.textContent = texts.add_generate_synopsis;
+  const addClearSynopsisBtn = $("addClearSynopsis"); if (addClearSynopsisBtn) addClearSynopsisBtn.textContent = texts.add_clear_synopsis;
+  const addCategoryBtnLocal = $("addCategoryBtnLocal"); if (addCategoryBtnLocal) addCategoryBtnLocal.textContent = texts.add_category_create;
+  const addChangeTitleBtn = $("addChangeTitleBtn"); if (addChangeTitleBtn) addChangeTitleBtn.textContent = texts.add_change_title;
+  const addTypeMovieBtn = $("addTypeMovie"); if (addTypeMovieBtn) addTypeMovieBtn.textContent = texts.btn_movie;
+  const addTypeSeriesBtn = $("addTypeSeries"); if (addTypeSeriesBtn) addTypeSeriesBtn.textContent = texts.btn_series;
+  const addRememberLabel = $("addRemember");
+  if (addRememberLabel) { const lbl = addRememberLabel.closest("label"); if (lbl) { const t = lbl.childNodes[lbl.childNodes.length-1]; if (t && t.nodeType===3) t.textContent = " " + texts.add_remember; } }
+
+  // Labels do modal de adição
+  document.querySelectorAll(".adv-label").forEach(el => {
+    const forAttr = el.getAttribute("for");
+    if (forAttr === "addSynopsis") el.textContent = texts.add_synopsis_label;
+  });
+
+  // Placeholder do poster sem imagem
+  const addPosterPlaceholder = $("addPosterPlaceholder");
+  if (addPosterPlaceholder) { const sp = addPosterPlaceholder.querySelector("span"); if (sp) sp.textContent = texts.add_no_image; }
+
+  // Modal principal (view/edit)
+  const modalPosterUrlLabel = document.querySelector("label[for='modalPosterUrl']");
+  if (modalPosterUrlLabel) modalPosterUrlLabel.textContent = texts.modal_poster_url;
+  const modalFetchPosterBtn = $("modalFetchPoster"); if (modalFetchPosterBtn) modalFetchPosterBtn.textContent = texts.modal_fetch;
+  const modalUploadBtnEl = $("modalUploadBtn"); if (modalUploadBtnEl) modalUploadBtnEl.textContent = texts.modal_upload;
+  const modalRemovePosterBtn = $("modalRemovePoster"); if (modalRemovePosterBtn) modalRemovePosterBtn.textContent = texts.modal_remove_poster;
+  const modalStreamingLabel = document.querySelector("label[for='modalStreaming']");
+  if (modalStreamingLabel) modalStreamingLabel.textContent = texts.modal_streaming;
+  const rememberStreamingLabel = $("rememberStreaming");
+  if (rememberStreamingLabel) { const lbl = rememberStreamingLabel.closest("label"); if (lbl) { const t = lbl.childNodes[lbl.childNodes.length-1]; if (t && t.nodeType===3) t.textContent = " " + texts.modal_remember; } }
+  const modalSinopseLabel = document.querySelector("label[for='modalSinopse']");
+  if (modalSinopseLabel) modalSinopseLabel.textContent = texts.modal_synopsis;
+  const btnGerarSinopseEl = $("btnGerarSinopse"); if (btnGerarSinopseEl) btnGerarSinopseEl.textContent = texts.modal_generate;
+  const btnLimparSinopseEl = $("btnLimparSinopse"); if (btnLimparSinopseEl) btnLimparSinopseEl.textContent = texts.modal_clear;
+  const btnTranslateSinopseEl = $("btnTranslateSinopse"); if (btnTranslateSinopseEl) btnTranslateSinopseEl.textContent = texts.modal_translate;
+  const modalCategoriesLabel = document.querySelector("#modalContent .edit-element label:not([for])");
+  if (modalCategoriesLabel && !modalCategoriesLabel.getAttribute("for")) {
+    if (modalCategoriesLabel.textContent.match(/Categorias|Categories/)) modalCategoriesLabel.textContent = texts.modal_categories;
+  }
+  const btnDeleteMovieEl = $("btnDeleteMovie"); if (btnDeleteMovieEl) btnDeleteMovieEl.textContent = texts.modal_delete;
+  const btnSaveMovieEl = $("btnSaveMovie"); if (btnSaveMovieEl) btnSaveMovieEl.textContent = texts.modal_save;
+
+  // Modal de confirmação
+  const confirmCancelBtnEl = $("confirmCancelBtn"); if (confirmCancelBtnEl) confirmCancelBtnEl.textContent = texts.confirm_cancel;
+
+  // Player — botão fechar
+  const playerCloseBtn = $("playerCloseBtn"); if (playerCloseBtn) playerCloseBtn.textContent = texts.player_close;
+  const playerSpinner = $("playerSpinner"); if (playerSpinner) playerSpinner.textContent = texts.player_loading;
+  const playerServerSpan = document.querySelector("#playerBody [style*='Trocar servidor']") || document.querySelector("#playerBody span[style*='color:#555']");
+  if (playerServerSpan && playerServerSpan.textContent.match(/Trocar|Switch/)) playerServerSpan.textContent = texts.player_server;
+  const playerEpToggleBtn = $("playerEpToggleBtn");
+  if (playerEpToggleBtn) { const t = playerEpToggleBtn.childNodes[playerEpToggleBtn.childNodes.length-1]; if (t && t.nodeType===3) t.textContent = " " + texts.player_episodes; }
+  const playerNextLabelDiv = $("playerNextPill")?.querySelector("div > div:first-child");
+  if (playerNextLabelDiv && playerNextLabelDiv.textContent.match(/seguir|next/i)) playerNextLabelDiv.textContent = texts.player_next_label;
+
   if (deleteSelectedBtn) updateDeleteSelectedButton();
   rebuildCategoryOptions(); renderSortFilters(); renderMovies();
 }
@@ -1662,7 +1848,7 @@ async function openAddModal() {
   const m2 = $("addTypeMovie"), s2 = $("addTypeSeries"), t2 = $("addModalTitle");
   if (m2) { m2.className = "add-type-btn active"; }
   if (s2) { s2.className = "add-type-btn"; }
-  if (t2) t2.textContent = "Adicionar Filme";
+  if (t2) t2.textContent = textMap[currentLang].add_movie;
 
   // Fecha o painel avançado
   const advPanel   = $("addAdvancedPanel");
@@ -1873,7 +2059,7 @@ function renderMovies() {
     return (titleMatch || descMatch) && catMatch && favMatch;
   });
   if (!filtered.length) {
-    movieGrid.innerHTML = `<div class="col-span-full text-center text-neutral-400 py-8">Nenhum filme encontrado.</div>`;
+    movieGrid.innerHTML = `<div class="col-span-full text-center text-neutral-400 py-8">${textMap[currentLang].none_found}</div>`;
     return;
   }
   const emptyMsg = movieGrid.querySelector(".col-span-full");
@@ -1972,7 +2158,8 @@ async function saveModalChanges() {
 }
 async function deleteMovieConfirm(id) {
   if (!id) return;
-  const confirmed = await showCustomConfirm("Confirmação de Exclusão", "Deseja realmente excluir esse filme?", "Excluir");
+  const t = textMap[currentLang];
+  const confirmed = await showCustomConfirm(t.confirm_delete_movie, t.confirm_delete_movie_msg, t.confirm_delete);
   if (!confirmed) return;
   try {
     await deleteDoc(doc(db, "users", userId, "movies", id));
@@ -2044,12 +2231,6 @@ function attachGlobalEvents() {
   });
   const toggleBtn = $("toggleSelectModeBtn");
   if (toggleBtn) toggleBtn.onclick = toggleMultiSelectMode;
-  deleteSelectedBtn = document.createElement("button");
-  deleteSelectedBtn.id = "deleteSelectedBtn";
-  deleteSelectedBtn.textContent = textMap[currentLang].delete_selected + " (0)";
-  deleteSelectedBtn.className = "fixed bottom-6 left-6 bg-red-700 text-white px-5 py-3 rounded-full shadow-xl hover:scale-105 hidden z-40";
-  deleteSelectedBtn.onclick = deleteSelectedMoviesConfirm;
-  document.body.appendChild(deleteSelectedBtn);
   if (modalPosterUrl) modalPosterUrl.oninput = (e) => { modalPoster.src = e.target.value; };
   const langBtn = $("toggleLanguageBtn");
   if (langBtn) langBtn.onclick = toggleLanguage;
@@ -2153,7 +2334,8 @@ function updateDeleteSelectedButton() {
 }
 async function deleteSelectedMoviesConfirm() {
   if (!selectedMovies.size) return showToast("Selecione pelo menos um filme.", "warning");
-  const confirmed = await showCustomConfirm("Confirmação de Exclusão", `Deseja realmente excluir ${selectedMovies.size} filme(s)?`, "Excluir");
+  const t = textMap[currentLang];
+  const confirmed = await showCustomConfirm(t.confirm_delete_movie, t.confirm_delete_selected_msg.replace("{n}", selectedMovies.size), t.confirm_delete);
   if (!confirmed) return;
   try {
     await Promise.all([...selectedMovies].map(id => deleteDoc(doc(db, "users", userId, "movies", id))));
